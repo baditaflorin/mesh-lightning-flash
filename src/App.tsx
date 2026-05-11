@@ -52,8 +52,18 @@ export function App() {
         ⚙
       </button>
 
-      <div className="version-badge">
-        v{appConfig.version} · {appConfig.commit}
+      <div className="self-ref">
+        <a href={appConfig.repositoryUrl} target="_blank" rel="noreferrer">
+          source
+        </a>
+        <span aria-hidden="true">·</span>
+        <a href={appConfig.paypalUrl} target="_blank" rel="noreferrer">
+          tip ♥
+        </a>
+        <span aria-hidden="true">·</span>
+        <span>
+          v{appConfig.version} · {appConfig.commit}
+        </span>
       </div>
 
       <SettingsDrawer

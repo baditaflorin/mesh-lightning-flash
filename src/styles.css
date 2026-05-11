@@ -288,3 +288,25 @@ body,
   color: var(--accent);
   text-decoration: none;
 }
+
+.self-ref {
+  position: absolute;
+  bottom: max(env(safe-area-inset-bottom), 0.5rem);
+  right: 1rem;
+  display: flex;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  align-items: center;
+  z-index: 4;
+}
+
+.self-ref a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.self-ref a:hover {
+  opacity: 0.7;
+}

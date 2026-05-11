@@ -10,4 +10,5 @@ export const appConfig = {
   turnTokenUrl:
     (import.meta.env.VITE_TURN_TOKEN_URL as string | undefined) ??
     "https://turn.0docker.com/credentials",
+  paypalUrl: "https://www.paypal.com/paypalme/florinbadita",
 } as const;
