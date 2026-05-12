@@ -27,7 +27,7 @@ We surface the trade-off in onboarding copy.
 ## Consequences
 
 - Zero implementation cost on shutter — no `ImageCapture`, no canvas snapshot, no file download path.
-- The camera role still benefits from clock sync because its screen-flash timing tells the user *when to press*.
+- The camera role still benefits from clock sync because its screen-flash timing tells the user _when to press_.
 - A future variant could add in-browser `ImageCapture` for the "single phone selfie with mesh lighting" use case. Out of scope for v1.
 
 ## Alternatives considered

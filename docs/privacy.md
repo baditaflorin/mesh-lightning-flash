@@ -19,6 +19,7 @@ The camera role does not call `getUserMedia` at all — it uses the user's nativ
 ## What the signaling server sees
 
 The y-webrtc protocol carries:
+
 - the room name (`mesh-lightning-flash:<roomId>`).
 - encrypted SDP offers/answers.
 
