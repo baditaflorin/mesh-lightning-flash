@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import * as Y from "yjs";
+import { useCamera, useFlashlight } from "@baditaflorin/mesh-common";
 import { createRoomSync } from "../sync/yjsRoom";
 import { createClockSync, type ClockSync } from "../sync/clockSync";
 import { maybeFetchTurnCredentials } from "../sync/iceConfig";
@@ -20,9 +21,11 @@ export function Flash({ roomId, role, countdownMs, flashMs }: Props) {
   const [pendingFire, setPendingFire] = useState<FireEvent | null>(null);
   const [strobing, setStrobing] = useState(false);
   const [peers, setPeers] = useState(0);
-  const [torchSupported, setTorchSupported] = useState<boolean | null>(null);
-  const trackRef = useRef<MediaStreamTrack | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+
+  const cam = useCamera({ armed: armed && role === "lamp", facing: "environment" });
+  const torch = useFlashlight(cam.stream);
+  const torchSupported: boolean | null =
+    role !== "lamp" || !armed ? null : cam.error ? false : cam.ready ? torch.supported : null;
 
   const mesh = useMemo(() => {
     if (!armed) return null;
@@ -38,40 +41,10 @@ export function Flash({ roomId, role, countdownMs, flashMs }: Props) {
   }, [armed]);
 
   useEffect(() => {
-    if (!armed || role !== "lamp") return undefined;
-    let cancelled = false;
-    void (async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" },
-        });
-        if (cancelled) {
-          stream.getTracks().forEach((t) => t.stop());
-          return;
-        }
-        streamRef.current = stream;
-        const [track] = stream.getVideoTracks();
-        if (!track) {
-          setTorchSupported(false);
-          return;
-        }
-        trackRef.current = track;
-        const caps = track.getCapabilities?.() as
-          | (MediaTrackCapabilities & { torch?: boolean })
-          | undefined;
-        setTorchSupported(Boolean(caps?.torch));
-      } catch (err) {
-        console.warn("[flash] camera access failed:", err);
-        setTorchSupported(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-      streamRef.current?.getTracks().forEach((t) => t.stop());
-      streamRef.current = null;
-      trackRef.current = null;
-    };
-  }, [armed, role]);
+    if (armed && role === "lamp" && cam.error) {
+      console.warn("[flash] camera access failed:", cam.error);
+    }
+  }, [armed, role, cam.error]);
 
   useEffect(() => {
     if (!mesh) return undefined;
@@ -98,10 +71,10 @@ export function Flash({ roomId, role, countdownMs, flashMs }: Props) {
 
     const fire = () => {
       setStrobing(true);
-      void setTorch(trackRef.current, true);
+      void torch.setOn(true);
       window.setTimeout(() => {
         setStrobing(false);
-        void setTorch(trackRef.current, false);
+        void torch.setOn(false);
       }, flashMs);
     };
 
@@ -193,17 +166,6 @@ export function Flash({ roomId, role, countdownMs, flashMs }: Props) {
       )}
     </div>
   );
-}
-
-async function setTorch(track: MediaStreamTrack | null, on: boolean): Promise<void> {
-  if (!track) return;
-  try {
-    await track.applyConstraints({
-      advanced: [{ torch: on } as unknown as MediaTrackConstraintSet],
-    });
-  } catch {
-    // Torch unsupported — visible screen flash still happens.
-  }
 }
 
 // Silence the unused Y import warning; it's exported by yjsRoom only via type.
