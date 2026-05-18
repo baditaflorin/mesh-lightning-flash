@@ -1,6 +1,9 @@
 export const appConfig = {
   appName: "mesh-lightning-flash",
   storagePrefix: "mesh-lightning-flash",
+  description:
+    "Peer-to-peer mesh: all phone flashlights strobe in single-millisecond sync to light a group photo from many angles.",
+  accentHex: "#ffd24a",
   version: __APP_VERSION__,
   commit: __GIT_COMMIT__,
   repositoryUrl: "https://github.com/baditaflorin/mesh-lightning-flash",

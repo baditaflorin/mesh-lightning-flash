@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
+import { MeshShell } from "@baditaflorin/mesh-common";
 import { Flash } from "./features/flash/Flash";
-import { SettingsDrawer } from "./features/settings/SettingsDrawer";
+import { SettingsExtras } from "./features/settings/SettingsExtras";
 import { appConfig } from "./shared/config";
-import { InviteShareButton, MeshBeacon } from "@baditaflorin/mesh-common";
 
 const STORAGE = {
   room: `${appConfig.storagePrefix}:room`,
@@ -25,7 +25,6 @@ export function App() {
   const [flashMs, setFlashMs] = useState(() =>
     Number(localStorage.getItem(STORAGE.flashMs) ?? "180"),
   );
-  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem(STORAGE.room, roomId);
@@ -41,47 +40,22 @@ export function App() {
   }, [flashMs]);
 
   return (
-    <div className="app-root">
+    <MeshShell
+      config={appConfig}
+      roomId={roomId}
+      onRoomChange={setRoomId}
+      settingsExtras={
+        <SettingsExtras
+          role={role}
+          onRoleChange={setRole}
+          countdownMs={countdownMs}
+          onCountdownChange={setCountdownMs}
+          flashMs={flashMs}
+          onFlashMsChange={setFlashMs}
+        />
+      }
+    >
       <Flash roomId={roomId} role={role} countdownMs={countdownMs} flashMs={flashMs} />
-
-      <InviteShareButton appName={appConfig.appName} roomId={roomId} />
-      <MeshBeacon app={appConfig.appName} room={roomId} />
-
-      <button
-        type="button"
-        className="settings-fab"
-        onClick={() => setSettingsOpen(true)}
-        aria-label="Open settings"
-      >
-        ⚙
-      </button>
-
-      <div className="self-ref">
-        <a href={appConfig.repositoryUrl} target="_blank" rel="noreferrer">
-          source
-        </a>
-        <span aria-hidden="true">·</span>
-        <a href={appConfig.paypalUrl} target="_blank" rel="noreferrer">
-          tip ♥
-        </a>
-        <span aria-hidden="true">·</span>
-        <span>
-          v{appConfig.version} · {appConfig.commit}
-        </span>
-      </div>
-
-      <SettingsDrawer
-        open={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
-        roomId={roomId}
-        onRoomChange={setRoomId}
-        role={role}
-        onRoleChange={setRole}
-        countdownMs={countdownMs}
-        onCountdownChange={setCountdownMs}
-        flashMs={flashMs}
-        onFlashMsChange={setFlashMs}
-      />
-    </div>
+    </MeshShell>
   );
 }
