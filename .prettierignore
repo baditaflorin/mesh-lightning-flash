@@ -3,3 +3,8 @@ docs/assets
 docs/index.html
 docs/404.html
 package-lock.json
+# Fleet-managed docs propagated from services-registry — never reformat or
+# fork locally (the registry copy is canonical). Excluding them keeps the
+# pre-commit fmt:check gate green without forking the upstream-owned files.
+CLAUDE.md
+SERVICE-TEMPLATE.md
