@@ -55,7 +55,13 @@ export function App() {
         />
       }
     >
-      <Flash roomId={roomId} role={role} countdownMs={countdownMs} flashMs={flashMs} />
+      <Flash
+        roomId={roomId}
+        role={role}
+        onRoleChange={setRole}
+        countdownMs={countdownMs}
+        flashMs={flashMs}
+      />
     </MeshShell>
   );
 }

@@ -27,13 +27,10 @@ const storagePrefix = pkg.name;
  */
 
 async function setRoleAndArm(page: Page, role: "camera" | "lamp"): Promise<void> {
-  // Role is read from localStorage at mount; set it then reload so the
-  // component picks it up, then arm to create the Yjs mesh room.
-  await page.evaluate(({ prefix, r }) => localStorage.setItem(`${prefix}:role`, r), {
-    prefix: storagePrefix,
-    r: role,
-  });
-  await page.reload();
+  // Pick the role straight from the arm screen's one-tap toggle (the primary
+  // UX path — no Settings hunt), then arm to create the Yjs mesh room. This
+  // also exercises that the toggle actually flips the role before arming.
+  await page.getByRole("button", { name: role === "camera" ? /📷 camera/ : /🔦 lamp/ }).click();
   await page.getByRole("button", { name: role === "camera" ? /Arm camera/i : /Arm lamp/i }).click();
 }
 
@@ -80,6 +77,45 @@ test("camera FLASH strobes the lamp on the opposite peer", async ({ browser, bas
         intervals: [50, 50, 100, 100, 200],
       })
       .toBe(true);
+  } finally {
+    await cleanup();
+  }
+});
+
+/**
+ * The lamp shows a live "Firing in N s…" countdown the moment the camera's
+ * FLASH event arrives over the mesh — proving the shared `fireAt` instant
+ * crossed the wire AND that the countdown is rendered (previously it read off
+ * the raw local wall clock, was offset by the peer's clock skew, and never
+ * ticked). We use a long countdown (4 s) so the indicator is reliably visible
+ * before the strobe consumes the event.
+ */
+test("the lamp surfaces a live countdown when the camera arms a flash", async ({
+  browser,
+  baseURL,
+}) => {
+  const { a, b, cleanup } = await openTwoPeers(browser, baseURL ?? "", { storagePrefix });
+  try {
+    // Give the camera a long, obvious countdown so the lamp's indicator is
+    // observable before the strobe fires.
+    await a.evaluate(
+      (prefix) => localStorage.setItem(`${prefix}:countdown`, "4000"),
+      storagePrefix,
+    );
+    await a.reload();
+
+    await setRoleAndArm(a, "camera");
+    await setRoleAndArm(b, "lamp");
+
+    // No countdown on the lamp before the camera fires.
+    await expect(b.getByText(/Firing in/i)).toHaveCount(0);
+
+    await a.getByRole("button", { name: /^FLASH$/ }).click();
+
+    // OPPOSITE-PEER assertion: the lamp renders the live countdown sourced from
+    // the camera's mesh-time `fireAt`, naming a sub-4s remaining time.
+    const countdown = b.getByText(/Firing in [0-3](\.\d)? s/i);
+    await expect(countdown).toBeVisible({ timeout: 8_000 });
   } finally {
     await cleanup();
   }

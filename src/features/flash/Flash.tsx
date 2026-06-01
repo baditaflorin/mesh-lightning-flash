@@ -12,15 +12,17 @@ type FireEvent = { fireAt: number; cycleId: string };
 type Props = {
   roomId: string;
   role: Role;
+  onRoleChange: (next: Role) => void;
   countdownMs: number;
   flashMs: number;
 };
 
-export function Flash({ roomId, role, countdownMs, flashMs }: Props) {
+export function Flash({ roomId, role, onRoleChange, countdownMs, flashMs }: Props) {
   const [armed, setArmed] = useState(false);
   const [pendingFire, setPendingFire] = useState<FireEvent | null>(null);
   const [strobing, setStrobing] = useState(false);
   const [peers, setPeers] = useState(0);
+  const [secsToFire, setSecsToFire] = useState<number | null>(null);
 
   const cam = useCamera({ armed: armed && role === "lamp", facing: "environment" });
   const torch = useFlashlight(cam.stream);
@@ -63,6 +65,23 @@ export function Flash({ roomId, role, countdownMs, flashMs }: Props) {
     const i = setInterval(() => setPeers(mesh.clock.peerCount()), 500);
     return () => clearInterval(i);
   }, [mesh]);
+
+  // Live "firing in N s" countdown, measured against the MESH clock (not the
+  // local wall clock) so every phone shows the same remaining time and it
+  // actually ticks down to zero.
+  useEffect(() => {
+    if (!pendingFire || !mesh) {
+      setSecsToFire(null);
+      return undefined;
+    }
+    const tick = () => {
+      const remaining = (pendingFire.fireAt - mesh.clock.meshNow()) / 1000;
+      setSecsToFire(remaining > 0 ? remaining : null);
+    };
+    tick();
+    const i = setInterval(tick, 100);
+    return () => clearInterval(i);
+  }, [pendingFire, mesh]);
 
   useEffect(() => {
     if (!pendingFire || !mesh) return undefined;
@@ -113,9 +132,25 @@ export function Flash({ roomId, role, countdownMs, flashMs }: Props) {
           Lamps point their flashlights at the subject. Tap <em>FLASH</em> on the camera and every
           lamp strobes simultaneously.
         </p>
-        <p className="flash-role">
-          This phone: <strong>{role === "camera" ? "📷 camera" : "🔦 lamp"}</strong>
-        </p>
+        <p className="flash-role">This phone is the:</p>
+        <div className="flash-role-pick" role="group" aria-label="Pick this phone's role">
+          <button
+            type="button"
+            className={role === "camera" ? "active" : ""}
+            aria-pressed={role === "camera"}
+            onClick={() => onRoleChange("camera")}
+          >
+            📷 camera
+          </button>
+          <button
+            type="button"
+            className={role === "lamp" ? "active" : ""}
+            aria-pressed={role === "lamp"}
+            onClick={() => onRoleChange("lamp")}
+          >
+            🔦 lamp
+          </button>
+        </div>
         <button type="button" className="flash-arm-button" onClick={() => setArmed(true)}>
           {role === "camera" ? "Arm camera" : "Arm lamp"}
         </button>
@@ -159,11 +194,7 @@ export function Flash({ roomId, role, countdownMs, flashMs }: Props) {
           still flash bright white — point it at the subject as a softer fill light.
         </p>
       )}
-      {pendingFire && (
-        <p className="flash-help">
-          Firing in {Math.max(0, Math.round((pendingFire.fireAt - (Date.now() + 0)) / 100) / 10)} s
-        </p>
-      )}
+      {secsToFire !== null && <p className="flash-help">Firing in {secsToFire.toFixed(1)} s…</p>}
     </div>
   );
 }

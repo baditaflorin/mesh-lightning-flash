@@ -11,6 +11,8 @@
 
 You're at a viewpoint at night. You want a group photo with decent lighting and you have six phones between you. Open the link on every phone, pick one as the **camera** and the rest as **lamps**, point the lamps' flashlights at the subject, and tap **FLASH** on the camera. Every lamp strobes simultaneously; you take the shot during the strobe.
 
+**Try it in two tabs:** open the live link in two browser tabs, pick **📷 camera** in one and **🔦 lamp** in the other (one tap, right on the opening screen), arm both, then hit **FLASH** in the camera tab — the lamp tab's screen strobes white at the same instant. (The phone torch LED only fires on Android Chrome; the screen flash works everywhere, including the two-tab demo.)
+
 ## How it works
 
 1. All phones join a Yjs room over y-webrtc.

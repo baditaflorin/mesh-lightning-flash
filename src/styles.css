@@ -56,7 +56,30 @@ body,
 
 .flash-role {
   font-size: 1.1rem;
-  margin: 1rem 0 2rem !important;
+  margin: 1rem 0 0.75rem !important;
+}
+
+.flash-role-pick {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.flash-role-pick button {
+  font-size: 1.05rem;
+  padding: 0.7rem 1.3rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+}
+
+.flash-role-pick button.active {
+  background: var(--accent);
+  color: #1a1100;
+  border-color: var(--accent);
+  font-weight: 700;
 }
 
 .flash-arm-button {
