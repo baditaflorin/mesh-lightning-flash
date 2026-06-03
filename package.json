@@ -1,24 +1,47 @@
 {
-  "name": "mesh-lightning-flash",
-  "version": "0.1.1",
+  "bugs": {
+    "url": "https://github.com/baditaflorin/mesh-lightning-flash/issues"
+  },
+  "dependencies": {
+    "@baditaflorin/mesh-common": "file:../mesh-common",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
+    "y-webrtc": "^10.3.0",
+    "yjs": "^13.6.27"
+  },
   "description": "Peer-to-peer mesh: all phone flashlights strobe in single-millisecond sync to light a group photo from many angles at once.",
-  "type": "module",
-  "private": false,
+  "devDependencies": {
+    "@playwright/test": "^1.50.0",
+    "@testing-library/jest-dom": "^6.6.0",
+    "@testing-library/react": "^16.1.0",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.2.6",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "jsdom": "^26.0.0",
+    "prettier": "^3.7.4",
+    "typescript": "^5.9.3",
+    "vite": "^7.0.0",
+    "vitest": "4.1.0"
+  },
+  "engines": {
+    "node": "\u003e=22"
+  },
   "homepage": "https://baditaflorin.github.io/mesh-lightning-flash/",
+  "license": "MIT",
+  "name": "mesh-lightning-flash",
+  "overrides": {},
+  "private": false,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/baditaflorin/mesh-lightning-flash.git"
   },
-  "bugs": {
-    "url": "https://github.com/baditaflorin/mesh-lightning-flash/issues"
-  },
-  "license": "MIT",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "bash scripts/build-pages.sh",
     "preview": "vite preview --host 0.0.0.0",
     "pages-preview": "vite preview --host 0.0.0.0 --port 4174",
-    "test": "npm run test:unit && npm run test:e2e",
+    "test": "npm run test:unit \u0026\u0026 npm run test:e2e",
     "smoke": "bash scripts/smoke.sh",
     "fmt": "prettier --write .",
     "fmt:check": "prettier --check .",
@@ -29,28 +52,6 @@
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:install": "playwright install chromium"
   },
-  "dependencies": {
-    "react": "^19.2.1",
-    "react-dom": "^19.2.1",
-    "y-webrtc": "^10.3.0",
-    "yjs": "^13.6.27",
-    "@baditaflorin/mesh-common": "file:../mesh-common"
-  },
-  "devDependencies": {
-    "@types/react": "^19.2.6",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.1.1",
-    "prettier": "^3.7.4",
-    "typescript": "^5.9.3",
-    "vite": "^7.0.0",
-    "vitest": "^2.1.0",
-    "@playwright/test": "^1.50.0",
-    "@testing-library/jest-dom": "^6.6.0",
-    "@testing-library/react": "^16.1.0",
-    "@types/node": "^22.10.0",
-    "jsdom": "^26.0.0"
-  },
-  "engines": {
-    "node": ">=22"
-  }
+  "type": "module",
+  "version": "0.1.1"
 }
