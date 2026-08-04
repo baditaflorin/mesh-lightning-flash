@@ -120,3 +120,71 @@ test("the lamp surfaces a live countdown when the camera arms a flash", async ({
     await cleanup();
   }
 });
+
+/**
+ * Regression test for a stuck-disabled FLASH button.
+ *
+ * The camera's FLASH button is disabled while a `fires` event is "live"
+ * (`pendingFire !== null`). `pendingFire` used to only get recomputed inside
+ * the `fires.observe` callback, which only fires on an actual Y.Array
+ * mutation. A fire event's 500ms grace window expires on its own — nothing
+ * else mutates the array at that moment for a normal session (the
+ * trim-to-10 delete only runs once the array exceeds 20 entries) — so
+ * `pendingFire` was never recomputed afterwards and the FLASH button stayed
+ * disabled forever after the very first flash of a session, permanently
+ * breaking the app's core action. This asserts the button becomes usable
+ * again well after the fire's countdown + flash + grace window elapses, and
+ * that a second FLASH actually re-fires the lamp.
+ */
+test("camera FLASH button re-enables after a flash completes, and can fire again", async ({
+  browser,
+  baseURL,
+}) => {
+  const { a, b, cleanup } = await openTwoPeers(browser, baseURL ?? "", { storagePrefix });
+  try {
+    // Short countdown + flash duration so the whole cycle (countdown + flash
+    // + 500ms grace) resolves quickly and predictably in the test.
+    await a.evaluate((prefix) => {
+      localStorage.setItem(`${prefix}:countdown`, "500");
+      localStorage.setItem(`${prefix}:flashMs`, "50");
+    }, storagePrefix);
+    await a.reload();
+
+    await setRoleAndArm(a, "camera");
+    await setRoleAndArm(b, "lamp");
+
+    const flashButton = a.getByRole("button", { name: /^FLASH$|^Firing…$/ });
+    await flashButton.click();
+    await expect(flashButton).toBeDisabled();
+
+    // Full cycle is ~500ms countdown + 50ms flash + 500ms grace ≈ 1050ms.
+    // Give real headroom above that; a stuck button would still be disabled
+    // at 3s.
+    await expect(flashButton).toBeEnabled({ timeout: 3_000 });
+    await expect(flashButton).toHaveText("FLASH");
+
+    // Prove it isn't just the label resetting: firing a second time must
+    // still reach the opposite peer.
+    await b.evaluate(() => {
+      const w = window as unknown as { __strobed2?: boolean };
+      w.__strobed2 = false;
+      const el = document.querySelector(".flash-overlay");
+      if (!el) return;
+      const check = () => {
+        if (el.classList.contains("on")) w.__strobed2 = true;
+      };
+      new MutationObserver(check).observe(el, { attributes: true, attributeFilter: ["class"] });
+    });
+
+    await flashButton.click();
+
+    await expect
+      .poll(() => b.evaluate(() => (window as unknown as { __strobed2?: boolean }).__strobed2), {
+        timeout: 8_000,
+        intervals: [50, 50, 100, 100, 200],
+      })
+      .toBe(true);
+  } finally {
+    await cleanup();
+  }
+});

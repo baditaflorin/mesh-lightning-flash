@@ -51,13 +51,33 @@ export function Flash({ roomId, role, onRoleChange, countdownMs, flashMs }: Prop
   useEffect(() => {
     if (!mesh) return undefined;
     const onUpdate = () => {
-      const all = mesh.fires.toArray();
-      const next = all.find((f) => f.fireAt > mesh.clock.meshNow() - 500);
-      setPendingFire(next ?? null);
+      const now = mesh.clock.meshNow();
+      // Pick the soonest still-live fire event (future, or fired within the
+      // last 500ms grace window), not just the first one pushed. Two camera
+      // roles can each queue a fire event (ADR 0003 explicitly allows this
+      // and claims "the system handles that fine"); picking array order
+      // instead of soonest fireAt could make every lamp wait for a later
+      // event while an earlier, closer one is silently ignored.
+      let next: FireEvent | null = null;
+      for (const f of mesh.fires.toArray()) {
+        if (f.fireAt > now - 500 && (!next || f.fireAt < next.fireAt)) next = f;
+      }
+      setPendingFire(next);
     };
     mesh.fires.observe(onUpdate);
     onUpdate();
-    return () => mesh.fires.unobserve(onUpdate);
+    // A fire event's 500ms grace window naturally expires on its own, but
+    // nothing else mutates the `fires` array at that moment — `observe` only
+    // fires on actual array mutations. Without this timer, `pendingFire`
+    // (and therefore the disabled FLASH button on the camera role) would
+    // stay stuck forever after a single flash, since a session with fewer
+    // than 21 total fires never triggers the trim-to-10 delete that would
+    // otherwise re-run `onUpdate`. Re-polling periodically clears it.
+    const staleCheck = window.setInterval(onUpdate, 250);
+    return () => {
+      mesh.fires.unobserve(onUpdate);
+      window.clearInterval(staleCheck);
+    };
   }, [mesh]);
 
   useEffect(() => {
