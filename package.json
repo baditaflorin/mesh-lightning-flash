@@ -25,7 +25,7 @@
     "vitest": "4.1.0"
   },
   "engines": {
-    "node": "\u003e=22"
+    "node": ">=22"
   },
   "homepage": "https://baditaflorin.github.io/mesh-lightning-flash/",
   "license": "MIT",
@@ -41,7 +41,7 @@
     "build": "bash scripts/build-pages.sh",
     "preview": "vite preview --host 0.0.0.0",
     "pages-preview": "vite preview --host 0.0.0.0 --port 4174",
-    "test": "npm run test:unit \u0026\u0026 npm run test:e2e",
+    "test": "npm run test:unit && npm run test:e2e",
     "smoke": "bash scripts/smoke.sh",
     "fmt": "prettier --write .",
     "fmt:check": "prettier --check .",
@@ -50,7 +50,8 @@
     "test:unit:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
-    "test:e2e:install": "playwright install chromium"
+    "test:e2e:install": "playwright install chromium",
+    "test:leak": "MESH_RUN_LEAK_TEST=1 playwright test tests/e2e/memory-leak.spec.ts"
   },
   "type": "module",
   "version": "0.1.1"
